@@ -1,23 +1,18 @@
 """
-Optional cross-encoder reranker (enhancement, off by default).
-
 A cross-encoder scores (query, chunk) pairs jointly, which is more
 accurate than comparing separately-computed embeddings, at the cost of
 being slower -- so we only run it on the small candidate pool returned
 by the first-stage retriever, not the whole corpus.
 """
 
-from functools import lru_cache
-
 from sentence_transformers import CrossEncoder
 
-from rag_core.config import RERANKER_MODEL_NAME
+from rag_core.runtime import get_runtime
 
 
-@lru_cache(maxsize=1)
 def get_reranker_model() -> CrossEncoder:
-    """Load (and cache) the cross-encoder reranking model."""
-    return CrossEncoder(RERANKER_MODEL_NAME)
+    """Load the cross-encoder reranking model."""
+    return get_runtime().reranker
 
 
 def rerank(query: str, candidates: list[dict], top_n: int) -> list[dict]:

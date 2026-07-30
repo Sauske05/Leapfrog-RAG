@@ -120,6 +120,8 @@ Versioned under `/api/v1`; health reports whether runtime models are loaded; ent
 ```bash
 # Install uv if needed: https://docs.astral.sh/uv/getting-started/installation/
 uv sync
+
+#UV is the preferred choice. Requirements.txt has also been added but may run into some erros when installing requirements using requirements.txt. 
 ```
 
 ### Add .env file with following keys:

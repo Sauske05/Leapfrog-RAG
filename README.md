@@ -238,9 +238,7 @@ See `rag_core/config.py` and `app/core/config.py` for the full set.
 - **Stream the response** properly (token-level SSE from Gemini through the query engine).  
 - **Query decomposition** for complex or multi-constraint questions (retrieve per sub-query, then fuse).  
 - **Chat history** and session memory for follow-ups (“only remote ones”, “compare the top two”).  
-- **Metadata filters** (location, level, category) via Qdrant payload filters exposed on the API.  
-- **Observability:** latency breakdown (embed / search / rerank / LLM), prompt version tagging in logs.  
-- **Optional re-index jobs** (admin-only) if the spreadsheet ever becomes mutable again.
+
 
 ---
 

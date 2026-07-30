@@ -122,15 +122,13 @@ Versioned under `/api/v1`; health reports whether runtime models are loaded; ent
 uv sync
 ```
 
-### Environment
+### Add .env file with following keys:
 
-```bash
-export PYTHONPATH=$(pwd)
-export GEMINI_API_KEY=your_key_here
-# optional:
-# export QDRANT_URL=http://localhost:6333
-# export GEMINI_MODEL=gemini-3-flash-preview
-# export USE_RERANKER=true
+```
+QDRANT_API_KEY=xxx
+QDRANT_URL=xxx
+GEMINI_API_KEY=xxx
+API_BASE_URL=http://127.0.0.1:8000
 ```
 
 Place `LF_Jobs.xlsx` under `data/` only if you plan to **re-run** ingestion.
@@ -146,20 +144,12 @@ uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 - Health: `GET /api/v1/health`  
 - Query: `POST /api/v1/query`  
 
-Example:
-
-```bash
-curl -X POST http://localhost:8000/api/v1/query \
-  -H 'Content-Type: application/json' \
-  -d '{"query":"senior remote python engineer","top_n":30,"mode":"hybrid","use_reranker":true}'
-```
-
 ### Run the Gradio UI
 
 With the API already running:
 
 ```bash
-export PYTHONPATH=.
+export PYTHONPATH=$(pwd)
 # optional if API is not on localhost:8000
 # export API_BASE_URL=http://127.0.0.1:8000
 python3 app_gradio.py

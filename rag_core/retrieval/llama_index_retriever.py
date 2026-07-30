@@ -62,5 +62,5 @@ class QdrantHybridRetriever(BaseRetriever):
                 },
             )
             nodes.append(NodeWithScore(node=node, score=float(score or 0.0)))
-        print('Retrieval Done. Waiting on generation!')
+        print('Retrieval Done. Since we are using free gemini api key, it is expected to take a long time for generation. Waiting on generation!')
         return nodes

@@ -7,7 +7,7 @@ router = APIRouter()
 service = QueryService()
 
 
-@router.get("/stream")
+@router.get("/query")
 async def stream(query: str):
     return EventSourceResponse(
         service.stream_query(query),

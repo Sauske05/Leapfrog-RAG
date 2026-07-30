@@ -54,7 +54,7 @@ def answer_query(
     query: str,
     top_n: int = DEFAULT_TOP_N,
     mode: SearchMode = "hybrid",
-    use_reranker: bool | None = None,
+    use_reranker: bool | None = True,
 ) -> dict[str, Any]:
     """
     End-to-end: retrieve → (rerank) → generate.

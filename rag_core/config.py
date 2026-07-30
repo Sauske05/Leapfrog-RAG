@@ -33,7 +33,7 @@ SPARSE_VECTOR_NAME = "sparse"
 
 # --- Indexing ---
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "64"))
-PREFETCH_LIMIT = int(os.getenv("PREFETCH_LIMIT", "20"))
+PREFETCH_LIMIT = int(os.getenv("PREFETCH_LIMIT", "40"))
 
 # --- Chunking (used by preprocessing) ---
 CHUNK_TARGET_CHARS = 1800

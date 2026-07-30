@@ -9,6 +9,8 @@ import asyncio
 from collections.abc import AsyncIterator
 from typing import Literal, Optional
 
+from fastapi import HTTPException
+
 from rag_core.generation.query_engine import answer_query
 
 
@@ -19,19 +21,18 @@ class QueryService:
         top_n: int = 5,
         mode: Literal["dense", "sparse", "hybrid"] = "hybrid",
         use_reranker: Optional[bool] = None,
-    ) -> AsyncIterator[dict]:
-        """Yield SSE events."""
+    ):
 
-        yield {
-            "event": "status",
-            "data": {"stage": "started", "query": query},
-        }
+        # yield {
+        #     "event": "status",
+        #     "data": {"stage": "started", "query": query},
+        # }
 
         try:
-            yield {
-                "event": "status",
-                "data": {"stage": "retrieving_and_generating"},
-            }
+        #     yield {
+        #         "event": "status",
+        #         "data": {"stage": "retrieving_and_generating"},
+        #     }
 
             result = await asyncio.to_thread(
                 answer_query,
@@ -41,31 +42,29 @@ class QueryService:
                 use_reranker,
             )
 
-            yield {
-                "event": "answer",
-                "data": {
-                    "query": result.get("query", query),
-                    "answer": result.get("answer", ""),
-                    "source_nodes": result.get("source_nodes", []),
-                    "use_reranker": result.get("use_reranker", False),
-                },
-            }
+            # yield {
+            #     "event": "answer",
+            #     "data": {
+            #         "query": result.get("query", query),
+            #         "answer": result.get("answer", ""),
+            #         "source_nodes": result.get("source_nodes", []),
+            #         "use_reranker": result.get("use_reranker", False),
+            #     },
+            # }
 
-            yield {
-                "event": "done",
-                "data": {"ok": True},
-            }
+            # yield {
+            #     "event": "done",
+            #     "data": {"ok": True},
+            # }
+            print(result)
+            print(f'This is the answer: {result.get("answer", "")}')
+            return result.get("answer", "")
 
         except Exception as exc:
-            yield {
-                "event": "error",
-                "data": {"message": str(exc)},
-            }
-
-            yield {
-                "event": "done",
-                "data": {"ok": False},
-            }
+            raise HTTPException(
+                status_code=500,
+                detail=str(exc),
+            ) from exc
 
     def query_sync(
         self,

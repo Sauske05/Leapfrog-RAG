@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 
 import gradio as gr
@@ -18,54 +17,66 @@ def run_search(
     use_reranker: bool,
 ):
     if not query or not query.strip():
-        yield "Please enter a query.", ""
-        return
+        return "Please enter a query.", ""
 
-    payload = {
+    params = {
         "query": query.strip(),
         "top_n": int(top_n),
         "mode": mode,
         "use_reranker": use_reranker,
     }
 
-    answer = ""
-    sources_md = "_No source chunks._"
-
     try:
         with httpx.Client(timeout=120.0) as client:
-            # Use client.stream for SSE (GET request with params)
-            with client.stream("GET", QUERY_URL, params=payload) as response:
-                response.raise_for_status()
-                
-                for line in response.iter_lines():
-                    if line.startswith("data:"):
-                        data_content = line[5:].strip()
-                        if not data_content:
-                            continue
-                        
-                        # Accumulate text chunks as they stream in
-                        answer += data_content
-                        yield answer, sources_md
+            response = client.get(QUERY_URL, params=params)
+            response.raise_for_status()
+
+            # Prefer JSON; fall back to raw text
+            answer = ""
+            sources_md = "_No source chunks._"
+
+            try:
+                data = response.json()
+            except Exception:
+                data = None
+
+            if isinstance(data, str):
+                # FastAPI returned a plain string answer
+                answer = data
+            elif isinstance(data, dict):
+                answer = data.get("answer") or data.get("result") or str(data)
+                sources = data.get("source_nodes") or data.get("sources") or []
+                if sources:
+                    lines = []
+                    for i, s in enumerate(sources, 1):
+                        score = s.get("score") or s.get("rerank_score") or ""
+                        text = (s.get("text") or "")[:400]
+                        lines.append(f"**{i}.** score={score}\n\n{text}\n")
+                    sources_md = "\n".join(lines)
+            else:
+                # Not JSON (or unexpected shape) → use body as answer
+                answer = response.text.strip()
+
+            if not answer:
+                answer = f"(empty response)\nstatus={response.status_code}\nbody={response.text[:500]!r}"
+
+            return answer, sources_md
 
     except httpx.ConnectError:
-        yield (
+        return (
             f"Cannot reach API at {API_BASE}. "
             "Start it with: uvicorn app.main:app --host 0.0.0.0 --port 8000",
             "",
         )
     except httpx.HTTPStatusError as exc:
-        detail = exc.response.text
-        yield f"API error {exc.response.status_code}: {detail}", ""
+        return f"API error {exc.response.status_code}: {exc.response.text}", ""
     except Exception as exc:
-        yield f"Request failed: {exc}", ""
+        return f"Request failed: {type(exc).__name__}: {exc}", ""
 
 
 with gr.Blocks(title="LF Jobs RAG") as demo:
-    gr.Markdown("# LF Jobs RAG Search (Streaming)")
-    gr.Markdown(
-        f"UI streaming enabled — hits **GET `{QUERY_URL}`**. "
-        "Start FastAPI before using this app."
-    )
+    gr.Markdown("# LF Jobs RAG Search")
+    gr.Markdown(f"Hits **GET `{QUERY_URL}`**.")
 
     with gr.Row():
         query = gr.Textbox(
@@ -84,7 +95,7 @@ with gr.Blocks(title="LF Jobs RAG") as demo:
         )
         use_reranker = gr.Checkbox(value=True, label="Reranker")
 
-    answer = gr.Textbox(label="Answer", lines=8)
+    answer = gr.Textbox(label="Answer", lines=10)
     sources = gr.Markdown(label="Sources")
 
     inputs = [query, top_n, mode, use_reranker]

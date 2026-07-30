@@ -62,4 +62,5 @@ class QdrantHybridRetriever(BaseRetriever):
                 },
             )
             nodes.append(NodeWithScore(node=node, score=float(score or 0.0)))
+        print('Retrieval Done. Waiting on generation!')
         return nodes
